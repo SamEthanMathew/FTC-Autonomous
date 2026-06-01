@@ -33,9 +33,20 @@ public final class SimulationLoop {
     private final double maxDtSeconds;
     private final double settlePositionTolerance;  // inches
     private final double settleVelocityTolerance;  // in/s
+    private final double fixedDurationSeconds;      // > 0 => run a fixed window, ignore settle
 
     public SimulationLoop() {
         this(0.006, 20.0, 30, 0.05);
+    }
+
+    /**
+     * A loop that runs every follow for exactly {@code durationSeconds} (then
+     * stops, regardless of completion). Used by the auto-tuner so each candidate
+     * evaluation takes a uniform, short time and the cost surface has no
+     * timeout cliffs.
+     */
+    public static SimulationLoop fixedWindow(double durationSeconds, double targetPeriodSeconds, double maxDtSeconds) {
+        return new SimulationLoop(targetPeriodSeconds, durationSeconds + 1.0, 1, maxDtSeconds, 0.5, 2.0, durationSeconds);
     }
 
     public SimulationLoop(double targetLoopPeriodSeconds, double maxSimSeconds, int settleLoops, double maxDtSeconds) {
@@ -52,12 +63,19 @@ public final class SimulationLoop {
      */
     public SimulationLoop(double targetLoopPeriodSeconds, double maxSimSeconds, int settleLoops, double maxDtSeconds,
                           double settlePositionTolerance, double settleVelocityTolerance) {
+        this(targetLoopPeriodSeconds, maxSimSeconds, settleLoops, maxDtSeconds,
+                settlePositionTolerance, settleVelocityTolerance, 0.0);
+    }
+
+    private SimulationLoop(double targetLoopPeriodSeconds, double maxSimSeconds, int settleLoops, double maxDtSeconds,
+                           double settlePositionTolerance, double settleVelocityTolerance, double fixedDurationSeconds) {
         this.targetLoopPeriodSeconds = targetLoopPeriodSeconds;
         this.maxSimSeconds = maxSimSeconds;
         this.settleLoops = settleLoops;
         this.maxDtSeconds = maxDtSeconds;
         this.settlePositionTolerance = settlePositionTolerance;
         this.settleVelocityTolerance = settleVelocityTolerance;
+        this.fixedDurationSeconds = fixedDurationSeconds;
     }
 
     public SimulationResult followPath(Follower follower, RobotPlant plant, SimulatedLocalizer localizer,
@@ -116,22 +134,29 @@ public final class SimulationLoop {
             TraceSample sample = TraceSample.capture(tSec, dt, follower, plant, drivetrain.getVoltage());
             samples.add(sample);
 
-            // Stop only once the follower has finished AND the robot has actually
-            // settled on the (held) endpoint — so endpoint overshoot is allowed to
-            // recover before we record the final pose.
-            boolean settled = !follower.isBusy()
-                    && sample.trackingError < settlePositionTolerance
-                    && sample.velocity < settleVelocityTolerance;
-            if (settled) {
-                if (++settle >= settleLoops) {
+            if (fixedDurationSeconds > 0.0) {
+                // Fixed-window mode (auto-tuner): run the whole window, no cliffs.
+                if (tSec >= fixedDurationSeconds) {
                     break;
                 }
             } else {
-                settle = 0;
-            }
-            if (tSec > maxSimSeconds) {
-                timedOut = true;
-                break;
+                // Stop once the follower has finished AND the robot has actually
+                // settled on the (held) endpoint — so endpoint overshoot is allowed
+                // to recover before we record the final pose.
+                boolean settled = !follower.isBusy()
+                        && sample.trackingError < settlePositionTolerance
+                        && sample.velocity < settleVelocityTolerance;
+                if (settled) {
+                    if (++settle >= settleLoops) {
+                        break;
+                    }
+                } else {
+                    settle = 0;
+                }
+                if (tSec > maxSimSeconds) {
+                    timedOut = true;
+                    break;
+                }
             }
         }
 

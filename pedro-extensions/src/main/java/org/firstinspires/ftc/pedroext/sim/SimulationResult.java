@@ -48,6 +48,16 @@ public final class SimulationResult {
     public double getMaxTrackingError() { return maxTrackingError; }
     public double getRmseTrackingError() { return rmseTrackingError; }
 
+    /** Path completion (0..1) at the end of the run. */
+    public double getFinalPathCompletion() {
+        return samples.isEmpty() ? 0.0 : samples.get(samples.size() - 1).pathCompletion;
+    }
+
+    /** Simulated time elapsed (sum of integration steps), jitter-free vs wall time. */
+    public double getSimTimeSeconds() {
+        return samples.isEmpty() ? 0.0 : samples.get(samples.size() - 1).t;
+    }
+
     public double finalPositionErrorTo(Pose target) {
         return Math.hypot(finalPose.getX() - target.getX(), finalPose.getY() - target.getY());
     }

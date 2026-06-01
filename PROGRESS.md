@@ -48,8 +48,20 @@ Runs the unmodified Pedro follower headlessly against a simulated plant.
   curve/multi-segment, recovers from a position kick, emits a trace dump.
 - 🔧 Robot: compare a real logged run vs sim trace; tune accel/heading-tau to match.
 
-## Phase C — Self-calibration + auto-PID
-- ⬜
+## Phase C — Self-calibration + auto-PID  (see docs/PHASE_C_selfcal_autopid.md)
+- ✅ C2 optimizer (JVM): `TrajectoryEvaluator` seam, `GainSet`, `SimTrajectoryEvaluator`,
+  `TwiddleOptimizer` + `CmaesGainOptimizer` (Commons Math). Cost = RMSE +
+  (1-pathCompletion) progress term + overshoot.
+- ✅ `OptimizerLogicTest` (synthetic bowl) + headline `AutoTuneOptimizerTest`:
+  from a bad gain set both optimizers cut simulated cost >50% (≈4.8→0.8), CMA-ES
+  stable across seeds.
+- ✅ C1 logic (JVM): `RobustStatistics` (MAD outlier rejection + climbing guard),
+  `CalibrationResult`/`CalibrationStore` (+ constants snippet). `CalibrationTest` green.
+- 🟡 `TeamCode/.../tuning/SelfCalibrationOpMode.java` (C1) and `AutoTuneOpMode.java`
+  (C2 on-robot, same optimizer) — compile-elsewhere.
+- 🔧 Robot: self-cal measurement math; auto-tune return-to-start + re-validate
+  sim-optimal gains on hardware.
+- Full pedro-extensions suite: 56 JVM tests green.
 
 ## Phase D — Logging + replay
 - ⬜
@@ -60,3 +72,7 @@ Runs the unmodified Pedro follower headlessly against a simulated plant.
 ## "I must verify on the robot" (accumulating)
 - [A] Straight-line distance repeatability, full vs drained pack, comp on.
 - [A] Confirm a `VoltageSensor` is present and `getVoltage()` reads sane.
+- [B] Compare a real logged run vs sim trace; tune accel/heading-tau to match.
+- [C] Self-cal measurement math; sane `pedro_calibration.properties` values.
+- [C] Auto-tune return-to-start path on your field; re-validate sim-optimal gains
+      on hardware (may be too aggressive); supervise.
