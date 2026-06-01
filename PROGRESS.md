@@ -35,8 +35,18 @@ Pedro 2.1.2 already compensates internally, so we exposed + tested + documented.
   `nominalVoltage(12.0)` (compile-elsewhere — no Android SDK here).
 - 🔧 Robot: straight-line distance repeatability full vs drained pack.
 
-## Phase B — Offline simulator
-- ⬜
+## Phase B — Offline simulator  (see docs/PHASE_B_simulator.md)
+Runs the unmodified Pedro follower headlessly against a simulated plant.
+- ✅ `sim/RobotPlant` (slew-rate plant; constant measured-decel braking),
+  `SimulatedDrivetrain` (extends core `Drivetrain`), `SimulatedLocalizer`
+  (implements core `Localizer`), `SimulatedRobot`, `SimulationLoop` (governed
+  real-time; integrates by measured wall-dt because Pedro's PIDF/PoseTracker use
+  `System.nanoTime()`), `ScheduledDisturbance`, `TraceSample`, `SimulationResult`
+  (+ CSV trace dump).
+- ✅ `RobotPlantTest` (9) — dynamics math green.
+- ✅ `SimulatorFollowerTest` (6) — real follower converges on straight/strafe/
+  curve/multi-segment, recovers from a position kick, emits a trace dump.
+- 🔧 Robot: compare a real logged run vs sim trace; tune accel/heading-tau to match.
 
 ## Phase C — Self-calibration + auto-PID
 - ⬜
