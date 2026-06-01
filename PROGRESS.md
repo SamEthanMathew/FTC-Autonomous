@@ -73,8 +73,18 @@ Runs the unmodified Pedro follower headlessly against a simulated plant.
   (compile-elsewhere; reuses Phase A voltage model for commanded-vs-applied).
 - 🔧 Robot: on-robot file writes; open .wpilog in AdvantageScope; overlay real vs sim.
 
-## Phase E — Vision-fused localization
-- ⬜
+## Phase E — Vision-fused localization  (see docs/PHASE_E_vision_fusion.md)
+- ✅ `fusion/PoseEKF` (3-DOF KF, capped corrections for smoothness),
+  `VisionCovariance` (quality gate + range/angle-weighted covariance), `TagMap`
+  (config; DECODE default excludes Obelisk 21-23), `VisionFusedLocalizer`
+  (implements core `Localizer`, wraps odometry).
+- ✅ `FusionTest` (8): EKF math + smoothing cap; covariance gate/weighting; tag
+  map; synthetic-stream integration — bounded drift, collision recovery, no jumps.
+- 🟡 `TeamCode/.../localization/AprilTagVisionSource.java` (VisionPortal/AprilTag,
+  uses SDK `detection.robotPose`) + `VisionFusedLocalizationOpMode.java`
+  (wires Pinpoint→fused→follower via `setLocalizer`). Compile-elsewhere.
+- Drivetrain-agnostic: applies to mecanum and swerve.
+- 🔧 Robot: camera/tag-library setup; confirm robotPose frame matches Pedro; tune.
 
 ## "I must verify on the robot" (accumulating)
 - [A] Straight-line distance repeatability, full vs drained pack, comp on.
@@ -83,3 +93,11 @@ Runs the unmodified Pedro follower headlessly against a simulated plant.
 - [C] Self-cal measurement math; sane `pedro_calibration.properties` values.
 - [C] Auto-tune return-to-start path on your field; re-validate sim-optimal gains
       on hardware (may be too aggressive); supervise.
+- [D] On-robot file writes; open .wpilog in AdvantageScope; overlay real vs sim.
+- [E] Camera/tag-library setup; confirm `detection.robotPose` frame matches Pedro;
+      confirm season localization tag IDs; tune VisionCovariance + correction caps.
+
+## Test status
+All five phases build; **69 JVM tests green** (`cd pedro-extensions && ./gradlew test`).
+TeamCode OpModes/glue are written + structured to compile in an FTC SDK project but
+are NOT compiled here (no Android SDK) and NOT hardware-verified.
