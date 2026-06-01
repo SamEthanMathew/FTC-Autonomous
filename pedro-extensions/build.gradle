@@ -1,0 +1,52 @@
+plugins {
+    id 'java-library'
+}
+
+// Standalone, pure-JVM module. Holds all platform-independent logic from the
+// Pedro Pathing autonomous-improvements project (voltage math, the offline
+// simulator + real-follower-in-the-loop, the auto-tuning optimizers, the
+// vision-fusion EKF, and the log serializer) together with their JUnit tests.
+//
+// This module deliberately does NOT depend on the Android / FTC SDK, so it
+// builds and tests with only a JDK + Gradle. It depends on the *real* Pedro
+// Pathing `core` artifact (the platform-independent module) so tests can drive
+// the unmodified follower headlessly. See ../docs/PLAN.md.
+
+group = 'org.firstinspires.ftc'
+version = '0.1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // The platform-independent Pedro Pathing core (Follower, Drivetrain,
+    // Localizer, FollowerConstants, Pose, PathBuilder, ...). Pure JVM.
+    api 'com.pedropathing:core:2.1.2'
+
+    // Used by the CMA-ES optimizer (Phase C2) and EKF linear algebra (Phase E).
+    implementation 'org.apache.commons:commons-math3:3.6.1'
+
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+java {
+    // Pedro `core` ships Java 8 bytecode and FTC TeamCode targets Java 8, so we
+    // keep this module Java-8 compatible in case the Android build consumes it.
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'failed', 'skipped'
+        exceptionFormat 'full'
+    }
+}

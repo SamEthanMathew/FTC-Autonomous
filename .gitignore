@@ -1,0 +1,21 @@
+# Gradle / build
+.gradle/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Android (for TeamCode when built in an FTC SDK project)
+local.properties
+*.apk
+*.aab
+captures/
