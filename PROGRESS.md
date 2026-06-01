@@ -63,8 +63,15 @@ Runs the unmodified Pedro follower headlessly against a simulated plant.
   sim-optimal gains on hardware.
 - Full pedro-extensions suite: 56 JVM tests green.
 
-## Phase D — Logging + replay
-- ⬜
+## Phase D — Logging + replay  (see docs/PHASE_D_logging.md)
+- ✅ `logging/LogFrame` shared schema (pose, target, 4 correction vectors,
+  commanded vs applied power, voltage). `CsvDataLogWriter` + `WpilogWriter`
+  (WPILOG 1.0 binary for AdvantageScope). `LogFrames` converts sim traces → same schema.
+- ✅ `LoggingTest`: CSV; WPILOG full round-trip (embedded decoder); short sim run
+  logged to WPILOG+CSV and decoded back (B↔D pairing).
+- 🟡 `TeamCode/.../logging/FollowerLogger.java` + `LoggingDemoOpMode.java`
+  (compile-elsewhere; reuses Phase A voltage model for commanded-vs-applied).
+- 🔧 Robot: on-robot file writes; open .wpilog in AdvantageScope; overlay real vs sim.
 
 ## Phase E — Vision-fused localization
 - ⬜
