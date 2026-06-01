@@ -24,8 +24,16 @@ See `docs/PLAN.md` for the full plan and the ground-truth API facts.
 - ✅ De-risk: real Pedro `core` (`Follower`/`Drivetrain`/`Localizer`) resolves from
   Maven Central and loads on the JVM (`PedroCoreResolutionSmokeTest`).
 
-## Phase A — Voltage compensation
-- ⬜ (Pedro 2.1.2 already compensates; we expose + test + document.)
+## Phase A — Voltage compensation  (see docs/PHASE_A_voltage.md)
+Pedro 2.1.2 already compensates internally, so we exposed + tested + documented.
+- ✅ `voltage/VoltageCompensationModel` — pure-Java port of Pedro's exact
+  multiplier + [-1,1] clamp + Mecanum-style renormalization + brownout
+  sign-flip guard; `k=0` reproduces the brief's `nominal/V` ratio.
+- ✅ `VoltageCompensationModelTest` green (18 assertions: edges, brownout, k=0
+  equivalence, renormalization, validation).
+- 🟡 `TeamCode/.../Constants.java` enables `useVoltageCompensation(true)`,
+  `nominalVoltage(12.0)` (compile-elsewhere — no Android SDK here).
+- 🔧 Robot: straight-line distance repeatability full vs drained pack.
 
 ## Phase B — Offline simulator
 - ⬜
@@ -40,4 +48,5 @@ See `docs/PLAN.md` for the full plan and the ground-truth API facts.
 - ⬜
 
 ## "I must verify on the robot" (accumulating)
-- _(none yet)_
+- [A] Straight-line distance repeatability, full vs drained pack, comp on.
+- [A] Confirm a `VoltageSensor` is present and `getVoltage()` reads sane.

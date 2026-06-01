@@ -1,0 +1,25 @@
+// Reference dependencies for the TeamCode module when this code is built inside
+// an FTC SDK project (e.g. the Pedro Pathing Quickstart, FTC SDK 11.1.0).
+//
+// This is NOT a standalone Android build and is not compiled in the headless
+// dev environment (no Android SDK). In a real FTC project, TeamCode already
+// applies the SDK's build.common.gradle / build.dependencies.gradle; merge the
+// dependencies below into that module.
+
+repositories {
+    mavenCentral()
+    // For com.pedropathing:telemetry (core/ftc are also on Maven Central):
+    maven { url = 'https://mymaven.bylazar.com/releases' }
+    // For the pure-JVM tooling module, published locally:
+    mavenLocal()
+}
+
+dependencies {
+    implementation 'com.pedropathing:ftc:2.1.2'
+    implementation 'com.pedropathing:telemetry:1.0.0'
+
+    // Pure-JVM tooling: voltage math, optimizer, EKF, log schema.
+    // Publish with `./gradlew :pedro-extensions:publishToMavenLocal`, or use a
+    // Gradle composite build: includeBuild '../pedro-extensions'.
+    implementation 'org.firstinspires.ftc:pedro-extensions:0.1.0'
+}
